@@ -48,8 +48,8 @@ def handle(sock):
             sock.sendall(data_to_send)
 
 
-certfile = path.dirname(path.abspath(__file__)) + "/server.crt"
-keyfile = path.dirname(path.abspath(__file__)) + "/server.key"
+certfile = path.dirname(path.abspath(__file__)) + "/cert/server.crt"
+keyfile = path.dirname(path.abspath(__file__)) + "/cert/server.key"
 
 sock = socket.socket()
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -60,11 +60,13 @@ ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 ssl_context.options |= (
     ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1 | ssl.OP_NO_COMPRESSION
 )
-ssl_context.set_ciphers("ECDHE+AESGCM")
+#ssl_context.set_ciphers("ECDHE+AESGCM")
+ssl_context.set_ciphers("AES256-SHA")
 ssl_context.load_cert_chain(certfile=certfile, keyfile=keyfile)
 ssl_context.set_alpn_protocols(["h2"])
 
 while True:
     conn = sock.accept()[0]
     sslconn = ssl_context.wrap_socket(conn, server_side=True)
+    print(sslconn.cipher())
     handle(sslconn)
